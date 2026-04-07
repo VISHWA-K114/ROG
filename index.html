@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RAD — Premium Password Generator</title>
+  <meta name="description"
+    content="Generate ultra-secure passwords with PassForge. Customize strength, length, and character sets. Save and manage your password history securely." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- Background ambient blobs -->
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+  <div class="bg-blob blob-3"></div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast" role="alert" aria-live="polite">
+    <i class="fa-solid fa-circle-check toast-icon"></i>
+    <span id="toast-msg">Copied to clipboard!</span>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <div>
+        <span class="logo-name">RAD</span>
+        <span class="logo-tagline">RANDOM PASSWORD GENERATOR</span>
+      </div>
+    </div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" id="tab-generator" onclick="switchTab('generator')">
+        <i class="fa-solid fa-key"></i> Generator
+      </button>
+      <button class="nav-tab" id="tab-history" onclick="switchTab('history')">
+        <i class="fa-solid fa-clock-rotate-left"></i> History
+        <span class="badge" id="history-badge">0</span>
+      </button>
+    </nav>
+  </header>
+
+  <main class="main-wrapper">
+
+    <!-- ====== GENERATOR TAB ====== -->
+    <section id="section-generator" class="tab-section active">
+
+      <!-- Mode Selector -->
+      <div class="card mode-card">
+        <h2 class="section-label"><i class="fa-solid fa-sliders"></i> Password Mode</h2>
+        <div class="mode-selector" role="radiogroup" aria-label="Password strength mode">
+          <button class="mode-btn active" id="mode-average" onclick="setMode('average')" aria-pressed="true">
+            <i class="fa-solid fa-shield"></i>
+            <span class="mode-name">Average</span>
+            <span class="mode-desc">8–10 chars</span>
+          </button>
+          <button class="mode-btn" id="mode-medium" onclick="setMode('medium')" aria-pressed="false">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span class="mode-name">Medium</span>
+            <span class="mode-desc">10–14 chars</span>
+          </button>
+          <button class="mode-btn" id="mode-strong" onclick="setMode('strong')" aria-pressed="false">
+            <i class="fa-solid fa-shield-virus"></i>
+            <span class="mode-name">Strong</span>
+            <span class="mode-desc">14–20 chars</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Password Display -->
+      <div class="card password-card">
+        <div class="password-display-wrapper">
+          <div class="password-field" id="password-field" aria-label="Generated password">
+            <span id="password-text" class="password-text blurred">Click Generate</span>
+          </div>
+          <div class="password-actions">
+            <button class="icon-btn" id="btn-toggle-visibility" onclick="toggleVisibility()" title="Show/Hide Password"
+              aria-label="Toggle password visibility">
+              <i class="fa-solid fa-eye" id="eye-icon"></i>
+            </button>
+            <button class="icon-btn" id="btn-copy" onclick="copyPassword()" title="Copy Password"
+              aria-label="Copy password">
+              <i class="fa-solid fa-copy"></i>
+            </button>
+            <button class="icon-btn" id="btn-regenerate" onclick="generatePassword()" title="Regenerate"
+              aria-label="Regenerate password">
+              <i class="fa-solid fa-rotate"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Strength Meter -->
+        <div class="strength-section">
+          <div class="strength-label-row">
+            <span class="strength-label-text">Strength</span>
+            <span class="strength-badge" id="strength-badge">—</span>
+          </div>
+          <div class="strength-bar-track" aria-label="Password strength meter" role="meter" aria-valuenow="0"
+            aria-valuemin="0" aria-valuemax="100">
+            <div class="strength-bar-fill" id="strength-bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Customization -->
+      <div class="card options-card">
+        <h2 class="section-label"><i class="fa-solid fa-gear"></i> Customization</h2>
+
+        <!-- Length Slider -->
+        <div class="length-control">
+          <label for="length-slider" class="opt-label">Password Length</label>
+          <div class="slider-row">
+            <input type="range" id="length-slider" class="slider" min="6" max="32" value="10"
+              oninput="onSliderChange(this.value)" aria-label="Password length slider" />
+            <input type="number" id="length-input" class="length-number" min="6" max="32" value="10"
+              oninput="onLengthInputChange(this.value)" aria-label="Password length number input" />
+          </div>
+        </div>
+
+        <!-- Character Options -->
+        <div class="char-options">
+          <label class="opt-label">Include Characters</label>
+          <div class="toggle-grid">
+            <label class="toggle-item" for="opt-uppercase">
+              <input type="checkbox" id="opt-uppercase" checked onchange="syncOptions()"
+                aria-label="Include uppercase letters" />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              <span class="toggle-text"><i class="fa-solid fa-font"></i> Uppercase (A–Z)</span>
+            </label>
+            <label class="toggle-item" for="opt-lowercase">
+              <input type="checkbox" id="opt-lowercase" checked onchange="syncOptions()"
+                aria-label="Include lowercase letters" />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              <span class="toggle-text"><i class="fa-solid fa-font fa-flip-vertical"></i> Lowercase (a–z)</span>
+            </label>
+            <label class="toggle-item" for="opt-numbers">
+              <input type="checkbox" id="opt-numbers" checked onchange="syncOptions()" aria-label="Include numbers" />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              <span class="toggle-text"><i class="fa-solid fa-hashtag"></i> Numbers (0–9)</span>
+            </label>
+            <label class="toggle-item" for="opt-symbols">
+              <input type="checkbox" id="opt-symbols" onchange="syncOptions()" aria-label="Include symbols" />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              <span class="toggle-text"><i class="fa-solid fa-at"></i> Symbols (!@#$…)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Generate Button -->
+      <div class="generate-row">
+        <button class="btn-generate" id="btn-generate" onclick="generatePassword()" aria-label="Generate new password">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          Generate Password
+        </button>
+      </div>
+
+      <!-- Save to History -->
+      <div class="card save-card" id="save-card" style="display:none">
+        <h2 class="section-label"><i class="fa-solid fa-floppy-disk"></i> Save to History</h2>
+        <div class="save-row">
+          <div class="input-wrapper">
+            <i class="fa-solid fa-tag input-icon"></i>
+            <input type="text" id="used-for-input" class="used-for-input"
+              placeholder='e.g. Gmail, Bank Account, Instagram…' maxlength="60"
+              aria-label="Label this password's purpose" />
+          </div>
+          <button class="btn-save" onclick="saveToHistory()" aria-label="Save password to history">
+            <i class="fa-solid fa-bookmark"></i> Save
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ====== HISTORY TAB ====== -->
+    <section id="section-history" class="tab-section">
+
+      <!-- History Toolbar -->
+      <div class="card history-toolbar">
+        <div class="toolbar-left">
+          <div class="search-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="history-search" class="search-input" placeholder="Search by label or password…"
+              oninput="renderHistory()" aria-label="Search password history" />
+          </div>
+        </div>
+        <div class="toolbar-right">
+          <button class="btn-outline" onclick="exportCSV()" title="Export as CSV" aria-label="Export history as CSV">
+            <i class="fa-solid fa-file-csv"></i> Export
+          </button>
+          <button class="btn-outline btn-danger" onclick="clearAllHistory()" title="Clear all history"
+            aria-label="Clear all history">
+            <i class="fa-solid fa-trash"></i> Clear All
+          </button>
+        </div>
+      </div>
+
+      <!-- History List -->
+      <div id="history-list" class="history-list" aria-label="Password history entries">
+        <!-- Dynamically rendered -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="history-empty" class="empty-state" style="display:none">
+        <div class="empty-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+        <h3>No history yet</h3>
+        <p>Generate and save passwords to see them here.</p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Edit Modal -->
+  <div id="edit-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title"
+    style="display:none">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-title"><i class="fa-solid fa-pen-to-square"></i> Edit Entry</h3>
+        <button class="modal-close" onclick="closeModal()" aria-label="Close modal"><i
+            class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <label for="modal-used-for" class="opt-label">Used For</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-tag input-icon"></i>
+          <input type="text" id="modal-used-for" class="used-for-input" maxlength="60" aria-label="Edit label" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline" onclick="closeModal()">Cancel</button>
+        <button class="btn-generate" onclick="saveEdit()" style="padding: 0.65rem 1.5rem; font-size:0.9rem">
+          <i class="fa-solid fa-floppy-disk"></i> Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div id="confirm-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="confirm-title"
+    style="display:none">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="confirm-title"><i class="fa-solid fa-triangle-exclamation"></i> Confirm Delete</h3>
+        <button class="modal-close" onclick="closeConfirm()" aria-label="Close confirm dialog"><i
+            class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-message" style="color:var(--text-muted); line-height:1.6"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-outline" onclick="closeConfirm()">Cancel</button>
+        <button class="btn-outline btn-danger" id="confirm-action-btn">
+          <i class="fa-solid fa-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
